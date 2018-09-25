@@ -3,24 +3,6 @@ var snakeFill = 'white';
 var foodFill = 'red';
 var timeNow = 0;
 
-var ks = {
-    ieUp: 'Up',
-    up: 'ArrowUp',
-    W: 'w',
-
-    ieDown: 'Down',
-    down: 'ArrowDown',
-    S: 's',
-
-    ieLeft: 'Left',
-    left: 'ArrowLeft',
-    A: 'a',
-
-    ieRight: 'Right',
-    right: 'ArrowRight',
-    D: 'd'
-};
-
 //  canvas: HTML canvas
 //  painter: canvas context
 //  snek: {
@@ -35,10 +17,6 @@ var ks = {
 //  }
 var canvas, painter, food, snek;
 
-// Each iteration of the game loop, redraw the canvas
-//  : {
-//      
-// }
 function draw() {
     painter.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -49,24 +27,22 @@ function draw() {
         (canvas.height - blockSize) :
         ((snek.y + snek.speedY) < 0) ? 0 : (snek.y + snek.speedY);
 
-    // if (snek.x === snekX) {
-    //     snek.speedX *= -1;
-    //     snekX += snek.speedX;
-    // }
-
-    // if (snek.y === snekY) {
-    //     snek.speedY *= -1;
-    //     snekY += snek.speedY;
-    // }
-
     snek.x = snekX;
     snek.y = snekY;
 
     painter.fillStyle = snakeFill;
     painter.fillRect(snekX, snekY, blockSize, blockSize);
+    painter.beginPath();
+    painter.lineWidth = '1';
+    painter.rect(snekX, snekY, blockSize, blockSize);
+    painter.stroke();
     
     painter.fillStyle = foodFill;
     painter.fillRect(food.x, food.y, blockSize, blockSize);
+    painter.beginPath();
+    painter.lineWidth = '1';
+    painter.rect(food.x, food.y, blockSize, blockSize);
+    painter.stroke();
 }
 
 function processKeyStroke(e) {
@@ -116,6 +92,20 @@ function processKeyStroke(e) {
 //  - wall
 //  - self
 function checkCollision() {
+    
+    //food
+    if (snek.x === food.x && snek.y === food.y) {
+        // newfood
+        var rawX = Math.random() * (canvas.scrollWidth - blockSize);
+        food.x = rawX - (rawX % blockSize);
+
+        var rawY = Math.floor(Math.random() * (canvas.scrollHeight - blockSize));
+        food.y = rawY - (rawY % blockSize);
+    }
+
+    // wall
+
+    // self
 
 }
 
@@ -123,8 +113,9 @@ function run(timestamp) {
     
     setTimeout(function() {
         draw();
+        checkCollision();
         window.requestAnimationFrame(run);
-    }, 1000/3);
+    }, 1000/24);
 
 }
 
@@ -135,7 +126,7 @@ function init() {
     painter = canvas.getContext("2d");
 
     food = {
-        x: 360,
+        x: 180,
         y: 240
     }
 
