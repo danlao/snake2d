@@ -1,73 +1,114 @@
 var blockSize = 20;    
 var snakeFill = 'white';
 var foodFill = 'red';
+var timeNow = 0;
 
-var start = function() {    
-    var gameOver = false;
-    var canvas = $("#playArea")[0];
-    var painter = canvas.getContext("2d");
+var ks = {
+    ieUp: 'Up',
+    up: 'ArrowUp',
+    W: 'w',
 
-    var food = {
-        x: 0,
-        y: 0
-    }
-    var snek = {
-        x: 0,
-        y: 0,
-        speedX: 5,
-        speedY: 0
-    }
+    ieDown: 'Down',
+    down: 'ArrowDown',
+    S: 's',
 
-    // game loop
-    while (!gameOver) {
+    ieLeft: 'Left',
+    left: 'ArrowLeft',
+    A: 'a',
 
-        //checkCollosion()
-        
-        //*if still not gameOver, then
-        var gameState = {
-            canvas: canvas,
-            painter: painter,
-            snek: snek,
-            food: food
-        };
-        draw(gameState);
-    }
-}
+    ieRight: 'Right',
+    right: 'ArrowRight',
+    D: 'd'
+};
 
-function gameLoop(gameState) {
-
-}
+//  canvas: HTML canvas
+//  painter: canvas context
+//  snek: {
+//      x: snek curr X pos
+//      y: snek curr Y pos
+//      speedX: snek curr X speed/delta
+//      speedY: snek curr Y speed/delta
+//  }
+//  food: {
+//      x: food curr X pos
+//      y: food curr Y pos
+//  }
+var canvas, painter, food, snek;
 
 // Each iteration of the game loop, redraw the canvas
-//  gameState: {
-//      canvas: HTML canvas
-//      painter: canvas context
-//      snek: {
-//          x: snek curr X pos
-//          y: snek curr Y pos
-//          speedX: snek curr X speed/delta
-//          speedY: snek curr Y speed/delta
-//      }
-//      food: {
-//          x: food curr X pos
-//          y: food curr Y pos
-//      }
+//  : {
+//      
 // }
-function draw(gameState) {
-    gameState.painter.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+function draw() {
+    painter.clearRect(0, 0, canvas.width, canvas.height);
 
-    var snekX = (gameState.snek.x + gameState.snek.speedX) > (gameState.canvas.width - blockSize) ? 
-        (gameState.canvas.width - blockSize) :
-        ((gameState.snek.x + gameState.snek.speedX) < 0) ? 0 : (gameState.snek.x + gameState.snek.speedX);
-    var snekY = (gameState.snek.y + gameState.snek.speedY) > (gameState.canvas.height - blockSize) ? 
-        (gameState.canvas.height - blockSize) :
-        ((gameState.snek.y + gameState.snek.speedY) < 0) ? 0 : (gameState.snek.y + gameState.snek.speedY);
+    var snekX = (snek.x + snek.speedX) > (canvas.width - blockSize) ? 
+        (canvas.width - blockSize) :
+        ((snek.x + snek.speedX) < 0) ? 0 : (snek.x + snek.speedX);
+    var snekY = (snek.y + snek.speedY) > (canvas.height - blockSize) ? 
+        (canvas.height - blockSize) :
+        ((snek.y + snek.speedY) < 0) ? 0 : (snek.y + snek.speedY);
 
-    gameState.painter.fillStyle = snakeFill;
-    gameState.painter.fillRect(snekX, snekY, blockSize, blockSize);
+    // if (snek.x === snekX) {
+    //     snek.speedX *= -1;
+    //     snekX += snek.speedX;
+    // }
+
+    // if (snek.y === snekY) {
+    //     snek.speedY *= -1;
+    //     snekY += snek.speedY;
+    // }
+
+    snek.x = snekX;
+    snek.y = snekY;
+
+    painter.fillStyle = snakeFill;
+    painter.fillRect(snekX, snekY, blockSize, blockSize);
     
-    gameState.painter.fillStyle = foodFill;
-    gameState.painter.fillRect(gameState.food.x, gameState.food.y, blockSize, blockSize);
+    painter.fillStyle = foodFill;
+    painter.fillRect(food.x, food.y, blockSize, blockSize);
+}
+
+function processKeyStroke(e) {
+
+    switch (e.key) {
+        case 'Up':
+        case 'ArrowUp':
+        case 'w':
+            if (snek.speedY === 0) {
+                snek.speedY = blockSize * -1;
+                snek.speedX = 0;
+            }
+            break;
+        
+        case 'Down':
+        case 'ArrowDown':
+        case 's':
+            if (snek.speedY === 0) {
+                snek.speedY = blockSize;
+                snek.speedX = 0;
+            }
+            break;
+
+        case 'Left':
+        case 'ArrowLeft':
+        case 'a':
+            if (snek.speedX === 0) {
+                snek.speedX = blockSize * -1;
+                snek.speedY = 0;
+            }
+            break;
+
+        case 'Right':
+        case 'ArrowRight':
+        case 'd':
+            if (snek.speedX === 0) {
+                snek.speedX = blockSize;
+                snek.speedY = 0;
+            }
+            break;
+    }
+
 }
 
 // Check for collisions with:
@@ -78,7 +119,38 @@ function checkCollision() {
 
 }
 
+function run(timestamp) {
+    
+    setTimeout(function() {
+        draw();
+        window.requestAnimationFrame(run);
+    }, 1000/3);
 
+}
 
+function init() {
 
-$('document').ready(this.start);
+    gameOver = false;
+    canvas = $("#playArea")[0];
+    painter = canvas.getContext("2d");
+
+    food = {
+        x: 360,
+        y: 240
+    }
+
+    snek = {
+        x: 140,
+        y: 240,
+        speedX: blockSize,
+        speedY: 0
+    }
+
+    // Register keystroke behavior
+    document.addEventListener('keydown', processKeyStroke);
+
+    run();
+
+}
+
+$(document).ready(init)
