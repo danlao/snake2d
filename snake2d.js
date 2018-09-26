@@ -1,48 +1,167 @@
-var blockSize = 20;    
-var snakeFill = 'white';
-var foodFill = 'red';
-var timeNow = 0;
+
+/***************************** VARIABLE DECLARATION/INITIALIZATION *****************************/
 
 //  canvas: HTML canvas
 //  painter: canvas context
-//  snek: {
-//      x: snek curr X pos
-//      y: snek curr Y pos
-//      speedX: snek curr X speed/delta
-//      speedY: snek curr Y speed/delta
-//  }
+//  snek: array of positions IN REVERSE ORDER
+//        mainly pop-tail and push-head operations, so reverse array has better optimized oprn's
+//          [ {x: x_, y: y_}
+//           ...  
+//          {x: x0, y: y0} ]
 //  food: {
-//      x: food curr X pos
-//      y: food curr Y pos
+//      x: food X pos
+//      y: food Y pos
 //  }
-var canvas, painter, food, snek;
+var canvas, painter;
+var food, foodEaten;
+var snek, snek_len, speedX, speedY, growSize, growCnt;
 
-function draw() {
-    painter.clearRect(0, 0, canvas.width, canvas.height);
+var blockSize = 20;    
+var snakeFill = 'white';
+var snakeFillHead = 'pink';
+var snakeFillTail = 'brown';
+var foodFill = 'red';
+var timeNow = 0;
+var gameOver = false;
 
-    var snekX = (snek.x + snek.speedX) > (canvas.width - blockSize) ? 
-        (canvas.width - blockSize) :
-        ((snek.x + snek.speedX) < 0) ? 0 : (snek.x + snek.speedX);
-    var snekY = (snek.y + snek.speedY) > (canvas.height - blockSize) ? 
-        (canvas.height - blockSize) :
-        ((snek.y + snek.speedY) < 0) ? 0 : (snek.y + snek.speedY);
+/************************************** CLASS DEFINITIONS **************************************/
 
-    snek.x = snekX;
-    snek.y = snekY;
-
-    painter.fillStyle = snakeFill;
-    painter.fillRect(snekX, snekY, blockSize, blockSize);
-    painter.beginPath();
-    painter.lineWidth = '1';
-    painter.rect(snekX, snekY, blockSize, blockSize);
-    painter.stroke();
+class SlistNode {
     
+    constructor(val) {
+        this.value = val || null;
+        this.prev = null;
+        this.next = null;
+    }
+
+}
+
+class SlinkedSlist {
+    
+    constructor(node) {
+        
+        this.head = null;
+        this.tail = null;
+        
+        if (node) {
+            this.head = node;
+            this.tail = node;
+            node.prev = null;
+            node.next = null;
+        }
+    }
+
+    // state when empty
+    // add to 0, 1, 1+
+    pushHead(node) {
+
+        if (this.head === null) {
+            node.prev = null;
+            node.next = null;
+            this.head = node;
+            this.tail = node;
+        } else {
+            node.prev = null;
+            node.next = this.head;
+            this.head.prev = node;
+            this.head = node;
+        }
+
+    }
+
+    pushTail(node) {
+
+        // don't call this on an empty slist - use pushHead
+        node.prev = this.tail;
+        node.next = null;
+        this.tail.next = node;
+        this.tail = node;
+
+    }
+
+    popTail() {
+
+        this.tail = this.tail.prev;
+        this.tail.next = null;
+        
+    }
+}
+
+/******************************************** CODE *********************************************/
+
+function _growSnake() {
+
+}
+
+function drawSnek() {
+
+    var snekX, snekY, snekHead, snekIter;
+    
+    snekHead = snek.head.value;
+    
+    // The checks below will need to move once we start to add in gameOver phase
+    snekX = (snekHead.x + speedX) > (canvas.width - blockSize) ? 
+        (canvas.width - blockSize) :
+        ((snekHead.x + speedX) < 0) ? 0 : (snekHead.x + speedX);
+    snekY = (snekHead.y + speedY) > (canvas.height - blockSize) ? 
+        (canvas.height - blockSize) :
+        ((snekHead.y + speedY) < 0) ? 0 : (snekHead.y + speedY);
+
+    //var snekX = snekHead.x + speedX;
+    //var snekY = snekHead.y + speedY;
+    snek.pushHead(new SlistNode( { x: snekX, y: snekY } ))
+
+    if (!growCnt) {
+        snek.popTail();
+    } else {
+        growCnt--;
+    }
+
+    snekIter = snek.tail;
+    while (snekIter) {
+        //TODO: refactor/reuse
+        painter.fillStyle = snekIter.prev === null ? snakeFillHead : snekIter.next === null ? snakeFillTail : snakeFill;
+        painter.fillRect(snekIter.value.x, snekIter.value.y, blockSize, blockSize);
+        painter.beginPath();
+        painter.lineWidth = '1';
+        painter.rect(snekIter.value.x, snekIter.value.y, blockSize, blockSize);
+        painter.stroke();
+
+        snekIter = snekIter.prev;
+    }
+
+}
+
+function drawFood() {
+
+    var rawX, rawY;
+    if (foodEaten) {
+        rawX = Math.random() * (canvas.width - blockSize);
+        food.x = rawX - (rawX % blockSize);
+
+        rawY = Math.floor(Math.random() * (canvas.height - blockSize));
+        food.y = rawY - (rawY % blockSize);
+
+        foodEaten = false;
+    }
+
     painter.fillStyle = foodFill;
     painter.fillRect(food.x, food.y, blockSize, blockSize);
     painter.beginPath();
     painter.lineWidth = '1';
     painter.rect(food.x, food.y, blockSize, blockSize);
     painter.stroke();
+
+}
+
+function draw() {
+    
+    painter.clearRect(0, 0, canvas.width, canvas.height);
+    if (!gameOver) {
+        drawSnek();
+        drawFood();
+    }
+    
 }
 
 function processKeyStroke(e) {
@@ -51,36 +170,36 @@ function processKeyStroke(e) {
         case 'Up':
         case 'ArrowUp':
         case 'w':
-            if (snek.speedY === 0) {
-                snek.speedY = blockSize * -1;
-                snek.speedX = 0;
+            if (speedY === 0) {
+                speedY = blockSize * -1;
+                speedX = 0;
             }
             break;
         
         case 'Down':
         case 'ArrowDown':
         case 's':
-            if (snek.speedY === 0) {
-                snek.speedY = blockSize;
-                snek.speedX = 0;
+            if (speedY === 0) {
+                speedY = blockSize;
+                speedX = 0;
             }
             break;
 
         case 'Left':
         case 'ArrowLeft':
         case 'a':
-            if (snek.speedX === 0) {
-                snek.speedX = blockSize * -1;
-                snek.speedY = 0;
+            if (speedX === 0) {
+                speedX = blockSize * -1;
+                speedY = 0;
             }
             break;
 
         case 'Right':
         case 'ArrowRight':
         case 'd':
-            if (snek.speedX === 0) {
-                snek.speedX = blockSize;
-                snek.speedY = 0;
+            if (speedX === 0) {
+                speedX = blockSize;
+                speedY = 0;
             }
             break;
     }
@@ -91,16 +210,12 @@ function processKeyStroke(e) {
 //  - food
 //  - wall
 //  - self
-function checkCollision() {
-    
+function handleCollisions() {
     //food
-    if (snek.x === food.x && snek.y === food.y) {
+    if (snek.head.value.x === food.x && snek.head.value.y === food.y) {
         // newfood
-        var rawX = Math.random() * (canvas.scrollWidth - blockSize);
-        food.x = rawX - (rawX % blockSize);
-
-        var rawY = Math.floor(Math.random() * (canvas.scrollHeight - blockSize));
-        food.y = rawY - (rawY % blockSize);
+        foodEaten = true;
+        growCnt = growSize;
     }
 
     // wall
@@ -112,14 +227,16 @@ function checkCollision() {
 function run(timestamp) {
     
     setTimeout(function() {
+        handleCollisions();
         draw();
-        checkCollision();
         window.requestAnimationFrame(run);
     }, 1000/24);
 
 }
 
 function init() {
+
+    var snekNode;
 
     gameOver = false;
     canvas = $("#playArea")[0];
@@ -129,13 +246,13 @@ function init() {
         x: 180,
         y: 240
     }
+    foodEaten = false;
 
-    snek = {
-        x: 140,
-        y: 240,
-        speedX: blockSize,
-        speedY: 0
-    }
+    snekNode = new SlistNode( {x: 140, y: 240} );
+    snek = new SlinkedSlist(snekNode);
+    speedX = blockSize;
+    speedY = 0;
+    growSize = 2;
 
     // Register keystroke behavior
     document.addEventListener('keydown', processKeyStroke);
