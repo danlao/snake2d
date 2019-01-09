@@ -1,13 +1,47 @@
 <html>
+
 <head>
-<title>The simplest HTML example</title>
-<!-- <script src="jquery-3.3.1.min.js"></script> -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-<script src="snake2d.js"></script>
-<script src="../heplers/MainLoop/src/mainloop.js"></script>
-<link rel="stylesheet" href="snake2d.css">
+    <title>The simplest HTML example</title>
+    <!-- <script src="jquery-3.3.1.min.js"></script> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="jquery-1.js"></script>
+    <script src="snake2d.js"></script>
+    <script src="../heplers/MainLoop/src/mainloop.js"></script>
+    <link rel="stylesheet" href="snake2d.css">
 </head>
+
 <body>
-<canvas id="playArea" width="500" height="500"></canvas>
+    <canvas id="playArea" width="500" height="500">
+    </canvas>
+    <div>
+        <span>Score: </span><span id="score"></span>
+    </div>
+
+    <div id="game-menu">
+        <div>Choose difficulty:</div>
+        <div>
+            <span id="difficulty-easy">1</span> - Easy
+        </div>
+        <div>
+            <span id="difficulty-medium">2</span> - Medium
+        </div>
+        <div>
+            <span id="difficulty-hard">3</span> - Hard
+        </div>
+        <div>
+            <span id="difficulty-insane">4</span> - Insane
+        </div>
+    </div>
+
+    <div id="game-over-menu">
+        <div>Game Over!</div>
+        <br>
+        <div>
+            Your score: <span id="final-score"></span>
+        </div>
+        <br>
+        <div>Play Again? Y/N</div>
+    </div>
 </body>
+
 </html>
