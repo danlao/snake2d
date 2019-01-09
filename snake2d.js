@@ -164,12 +164,14 @@ function updateFood() {
 }
 
 function _generateNewFoodCoordinate() {
-    var randX, randY;
+    var randX, randY, foodCoordinate;
     
-    randX = Math.random() * (canvas.width - blockSize);
-    randY = Math.random() * (canvas.height - blockSize);
-
-    return { x: (randX - (randX % blockSize)), y: (randY - (randY % blockSize)) };
+    do {
+        randX = Math.random() * (canvas.width - blockSize);
+        randY = Math.random() * (canvas.height - blockSize);
+        foodCoordinate = { x: (randX - (randX % blockSize)), y: (randY - (randY % blockSize)) };
+    } while (_isCellOccupiedBySnek(foodCoordinate))
+    return foodCoordinate;
 }
 
 function _paintCanvasCell(coordX, coordY, opts) {
@@ -308,12 +310,12 @@ function _setBehaviorAfterWallCollision() {
 }
 
 function handleSelfCollision(headCoordinates) {
-    if (_isSnekCollideWithSelf(headCoordinates)) {
+    if (_isCellOccupiedBySnek(headCoordinates)) {
         _setBehaviorAfterSelfCollision();
     }
 }
 
-function _isSnekCollideWithSelf(headCoordinates) {
+function _isCellOccupiedBySnek(headCoordinates) {
     var segmentIter = snek.head.nextSegment;
 
     while (segmentIter !== null) {
