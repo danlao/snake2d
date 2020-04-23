@@ -1,3 +1,5 @@
+var newthing  = {};
+
 var LEVEL = {
     EASY: 6,
     MEDIUM: 15,
